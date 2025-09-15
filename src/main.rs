@@ -79,7 +79,7 @@ async fn main() {
                     results.lock().await.insert(job.id.clone(), text);
                 });
 
-                println!("Job {} finished", job.id);
+                println!("Job {} finished ", job.id);
                 drop(permit);
             });
         }
@@ -136,7 +136,7 @@ fn decode_wav_to_f32(data: &[u8]) -> Vec<f32> {
     use std::io::Cursor;
     let reader = hound::WavReader::new(Cursor::new(data)).expect("invalid wav");
     let spec = reader.spec();
-    assert_eq!(spec.channels, 1, "audio must be mono");
+    assert_eq!(spec.channels, 1, "audio must be mono ");
     assert_eq!(spec.sample_rate, 16_000, "audio must be 16kHz");
 
     reader
