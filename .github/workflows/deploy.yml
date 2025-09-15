@@ -3,7 +3,7 @@ name: Deploy Whisper Service
 on:
   push:
     branches:
-      - main   # запускаем при пуше в main
+      - main
 
 jobs:
   deploy:
@@ -16,33 +16,43 @@ jobs:
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          printf "%s" "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
+          echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
 
       - name: Deploy to server
         run: |
-          ssh -i ~/.ssh/id_rsa root@${{ secrets.DEPLOY_HOST }} << 'EOF'
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no root@${{ secrets.DEPLOY_HOST }} << 'EOF'
             set -e
             cd /root
+            
+            # Clone or update repository
             if [ ! -d "whisper_service" ]; then
               git clone https://github.com/fobass/whisper_service.git
-              cd whisper_service
-            else
-              cd whisper_service
-              git reset --hard
-              git pull origin main
+            fi
+            
+            cd whisper_service
+            git reset --hard
+            git pull origin main
+
+            # Ensure cargo is available
+            source $HOME/.cargo/env 2>/dev/null || true
+
+            # Install dependencies if missing
+            if ! command -v cargo &> /dev/null; then
+              curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+              source $HOME/.cargo/env
             fi
 
-            # ensure cargo is available
-            source $HOME/.cargo/env
-
-            # build project
+            # Build project
             cargo build --release
 
-            # kill old process if exists
-            pkill -f whisper_service || true
+            # Kill old process if exists
+            pkill -f "whisper_service" || true
+            sleep 2
 
-            # start new one
+            # Start new service
             nohup ./target/release/whisper_service > server.log 2>&1 &
+            
+            echo "Deployment completed successfully!"
           EOF
