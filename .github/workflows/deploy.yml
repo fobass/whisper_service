@@ -13,18 +13,16 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-     - name: Setup SSH
+      - name: Setup SSH
         run: |
-           mkdir -p ~/.ssh
+          mkdir -p ~/.ssh
           printf "%s" "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
 
-
-
       - name: Deploy to server
         run: |
-          ssh -i ~/.ssh/id_rsa ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} << 'EOF'
+          ssh -i ~/.ssh/id_rsa root@${{ secrets.DEPLOY_HOST }} << 'EOF'
             set -e
             cd /root
             if [ ! -d "whisper_service" ]; then
@@ -36,12 +34,15 @@ jobs:
               git pull origin main
             fi
 
-            # билдим проект
+            # ensure cargo is available
+            source $HOME/.cargo/env
+
+            # build project
             cargo build --release
 
-            # убиваем старый процесс
+            # kill old process if exists
             pkill -f whisper_service || true
 
-            # запускаем новый
+            # start new one
             nohup ./target/release/whisper_service > server.log 2>&1 &
           EOF
