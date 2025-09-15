@@ -2,15 +2,13 @@ name: Deploy Whisper Service
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repo
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Setup SSH
@@ -24,35 +22,10 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no root@${{ secrets.DEPLOY_HOST }} << 'EOF'
             set -e
-            cd /root
-            
-            # Clone or update repository
-            if [ ! -d "whisper_service" ]; then
-              git clone https://github.com/fobass/whisper_service.git
-            fi
-            
-            cd whisper_service
-            git reset --hard
+            cd /root/whisper_service
             git pull origin main
-
-            # Ensure cargo is available
-            source $HOME/.cargo/env 2>/dev/null || true
-
-            # Install dependencies if missing
-            if ! command -v cargo &> /dev/null; then
-              curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-              source $HOME/.cargo/env
-            fi
-
-            # Build project
+            source $HOME/.cargo/env
             cargo build --release
-
-            # Kill old process if exists
-            pkill -f "whisper_service" || true
-            sleep 2
-
-            # Start new service
+            pkill -f whisper_service || true
             nohup ./target/release/whisper_service > server.log 2>&1 &
-            
-            echo "Deployment completed successfully!"
           EOF
