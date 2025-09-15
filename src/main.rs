@@ -24,7 +24,7 @@ struct TranscriptionResponse {
 #[tokio::main]
 async fn main() {
 
-    let ctx = WhisperContext::new_with_params("/Users/ernist/Desktop/StackFlow/whisper.cpp/models/ggml-base.bin", WhisperContextParameters::default())
+    let ctx = WhisperContext::new_with_params("/root/whisper.cpp/models/ggml-base.bin", WhisperContextParameters::default())
         .expect("failed to load model");
 
     let state = AppState {
