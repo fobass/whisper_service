@@ -1,0 +1,45 @@
+name: Deploy Whisper Service
+
+on:
+  push:
+    branches:
+      - main   # запускаем при пуше в main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to server
+        run: |
+          ssh -i ~/.ssh/id_rsa ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} << 'EOF'
+            set -e
+            cd /root
+            if [ ! -d "whisper_service" ]; then
+              git clone https://github.com/fobass/whisper_service.git
+              cd whisper_service
+            else
+              cd whisper_service
+              git reset --hard
+              git pull origin main
+            fi
+
+            # билдим проект
+            cargo build --release
+
+            # убиваем старый процесс
+            pkill -f whisper_service || true
+
+            # запускаем новый
+            nohup ./target/release/whisper_service > server.log 2>&1 &
+          EOF
