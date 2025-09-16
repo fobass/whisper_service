@@ -11,25 +11,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Debug SSH key
-        run: |
-          echo "Checking SSH key content:"
-          ls -la ~/.ssh/
-          echo "Key content:"
-          cat ~/.ssh/id_rsa
-          echo "Key file exists:" && test -f ~/.ssh/id_rsa && echo "YES" || echo "NO"
-            - name: Test SSH connection
-              run: |
-                ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -o BatchMode=yes root@${{ secrets.DEPLOY_HOST }} "echo 'SSH connection successful from GitHub!'"
-
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
           echo "${{ secrets.DEPLOY_KEY }}" | base64 -d > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
           
+          # Debug: Check if files were created
+          echo "SSH directory contents:"
+          ls -la ~/.ssh/
+          echo "Key file first few chars:"
+          head -c 50 ~/.ssh/id_rsa
+
+      - name: Test SSH connection
+        run: |
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -v root@${{ secrets.DEPLOY_HOST }} "echo 'SSH test successful'"
+
       - name: Deploy to server
         run: |
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no root@${{ secrets.DEPLOY_HOST }} << 'EOF'
