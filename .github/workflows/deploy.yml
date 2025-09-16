@@ -15,11 +15,14 @@ jobs:
         uses: webfactory/ssh-agent@v0.8.0
         with:
           ssh-private-key: ${{ secrets.DEPLOY_KEY }}
-
-      - name: Test SSH connection
+          
+      - name: Debug SSH
         run: |
-          ssh -o StrictHostKeyChecking=no -o BatchMode=yes root@${{ secrets.DEPLOY_HOST }} "echo 'SSH connection successful!'"
-
+          echo "Current directory: $(pwd)"
+          echo "Home directory: $HOME"
+          ls -la $HOME/
+          ls -la $HOME/.ssh/ || echo "No .ssh directory"
+          
       - name: Deploy to server
         run: |
           ssh -o StrictHostKeyChecking=no root@${{ secrets.DEPLOY_HOST }} << 'EOF'
