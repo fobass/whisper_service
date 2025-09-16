@@ -12,27 +12,24 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_KEY }}
+
+      - name: Add host to known hosts
         run: |
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
-          echo "${{ secrets.DEPLOY_KEY }}" | base64 -d > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
-          
-          # Debug: Check if files were created
-          echo "SSH directory contents:"
-          ls -la ~/.ssh/
-          echo "Key file first few chars:"
-          head -c 50 ~/.ssh/id_rsa
 
       - name: Test SSH connection
         run: |
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -v root@${{ secrets.DEPLOY_HOST }} "echo 'SSH test successful'"
+          ssh -o StrictHostKeyChecking=no root@${{ secrets.DEPLOY_HOST }} "echo 'SSH test successful'"
 
       - name: Deploy to server
         run: |
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no root@${{ secrets.DEPLOY_HOST }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no root@${{ secrets.DEPLOY_HOST }} << 'EOF'
             set -e
             cd /root/whisper_service
             git pull origin main
