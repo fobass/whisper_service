@@ -14,9 +14,13 @@ jobs:
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
+          echo "${{ secrets.DEPLOY_KEY }}" | base64 -d > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Test SSH connection
+        run: |
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no root@${{ secrets.DEPLOY_HOST }} "echo SSH connection successful!"
 
       - name: Deploy to server
         run: |
@@ -27,5 +31,7 @@ jobs:
             source $HOME/.cargo/env
             cargo build --release
             pkill -f whisper_service || true
+            sleep 2
             nohup ./target/release/whisper_service > server.log 2>&1 &
+            echo "Deployment completed successfully!"
           EOF
