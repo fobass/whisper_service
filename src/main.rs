@@ -112,7 +112,7 @@ async fn enqueue_transcription(
     body: bytes::Bytes,
 ) -> Json<EnqueueResponse> {
     let audio_data = decode_wav_to_f32(&body);
-    let job_id = Uuid::new_v4().to_string();
+    let job_id = Uuid::new_v4().to_string() + "-impatica";
 
     let job = Job {
         id: job_id.clone(),
