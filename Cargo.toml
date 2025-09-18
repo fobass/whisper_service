@@ -21,4 +21,13 @@ blake3 = "1.8.2"
 futures = "0.3.31"
 redis = { version = "0.22", features = ["tokio-comp"] }
 rustfft = "6.1"
-libc = "0.2.175"
+libc = "0.2.175" # For WAV
+webm = "2.1.0"
+symphonia = { version = "0.5", features = [
+    "mp3",      # MP3 support
+    "aac",      # AAC support
+    "flac",     # FLAC support
+    "wav",      # WAV support
+    "ogg",      # OGG container support
+    "isomp4",   # ISO MP4 container support
+]}
