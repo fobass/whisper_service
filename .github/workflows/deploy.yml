@@ -26,7 +26,7 @@ jobs:
 
       - name: Deploy to server
         run: |
-          ssh -p 59477 -i ~/.ssh/id_ed25519 root@77.104.167.149 << 'EOF'
+          ssh -p 59277 -i ~/.ssh/id_ed25519 root@77.104.167.149 << 'EOF'
             set -e
             cd /root/whisper_service
             git pull origin main
