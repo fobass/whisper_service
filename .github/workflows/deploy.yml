@@ -8,26 +8,32 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      # 1️⃣ Checkout your code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup SSH Key
+      # 2️⃣ Setup SSH key
+      - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -p 59277 77.104.167.149 >> ~/.ssh/known_hosts
+          ssh-keyscan -p 59166 77.104.167.149 >> ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
+      # 3️⃣ Test SSH connection
       - name: Test SSH connection
         run: |
-          ssh -p 59277 -i ~/.ssh/id_ed25519 -o BatchMode=yes root@77.104.167.149 "echo 'SSH connection successful!'"
+          ssh -p 59166 -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no \
+          -o UserKnownHostsFile=/dev/null root@77.104.167.149 "echo 'SSH connection successful!'"
 
+      # 4️⃣ Deploy Whisper service
       - name: Deploy to server
         run: |
-          ssh -p 59277 -i ~/.ssh/id_ed25519 root@77.104.167.149 << 'EOF'
-            set -e
+          ssh -p 59166 -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no \
+          -o UserKnownHostsFile=/dev/null root@77.104.167.149 << 'EOF'
+            set -eux
             cd /root/whisper_service
             git pull origin main
             source $HOME/.cargo/env
@@ -36,4 +42,5 @@ jobs:
             sleep 2
             nohup ./target/release/whisper_service > server.log 2>&1 &
             echo "Deployment completed successfully!"
+            echo "Service is running on port 8080"
           EOF
