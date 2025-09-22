@@ -77,6 +77,7 @@ async fn main() {
     let ctx = WhisperContext::new_with_params(&model_path, WhisperContextParameters::default())
         .expect("failed to load model");
 
+
     println!("✅ Whisper model loaded successfully");
 
     let (tx, rx) = mpsc::channel::<Job>(QUEUE_CAPACITY);
@@ -154,7 +155,7 @@ async fn main() {
         .unwrap();
 
     println!("🚀 Server listening on {}", listener.local_addr().unwrap());
-
+    println!("node 1");
     axum::serve(listener, app.into_make_service())
         .await
         .unwrap();
