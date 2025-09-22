@@ -78,7 +78,7 @@ async fn main() {
         .expect("failed to load model");
 
 
-    println!("✅ Whisper model loaded successfully");
+    println!("✅ Whisper model loaded successfully with base model.");
 
     let (tx, rx) = mpsc::channel::<Job>(QUEUE_CAPACITY);
     let results = Arc::new(Mutex::new(HashMap::new()));
@@ -155,7 +155,6 @@ async fn main() {
         .unwrap();
 
     println!("🚀 Server listening on {}", listener.local_addr().unwrap());
-    println!("node 1");
     axum::serve(listener, app.into_make_service())
         .await
         .unwrap();
