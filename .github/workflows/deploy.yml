@@ -35,7 +35,8 @@ jobs:
           -o UserKnownHostsFile=/dev/null root@77.104.167.149 << 'EOF'
             set -eux
             cd /root/whisper_service
-            git pull origin main
+            git fetch origin main
+            git reset --hard origin/main
             source $HOME/.cargo/env
             cargo build --release
             pkill -f whisper_service || true
