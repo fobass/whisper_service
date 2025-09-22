@@ -72,7 +72,7 @@ async fn main() {
     let redis_client = redis::Client::open(redis_url).expect("Failed to connect to Redis");
 
     let model_path = env::var("WHISPER_MODEL_PATH")
-        .unwrap_or_else(|_| "/root/whisper.cpp/models/ggml-base.bin".to_string());
+        .unwrap_or_else(|_| "/root/whisper.cpp/models/ggml-small.bin".to_string());
 
     let ctx = WhisperContext::new_with_params(&model_path, WhisperContextParameters::default())
         .expect("failed to load model");
@@ -155,9 +155,12 @@ async fn main() {
         .unwrap();
 
     println!("🚀 Server listening on {}", listener.local_addr().unwrap());
+    println!("🚀 Before starting server...");
     axum::serve(listener, app.into_make_service())
         .await
         .unwrap();
+    println!("🚀 After starting server...");
+
 }
 
 async fn process_job(
